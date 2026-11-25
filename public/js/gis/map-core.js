@@ -17,7 +17,7 @@ const useGpsParam = urlParams.get('use_gps') === '1';
 // Inisialisasi dropdown jenis awal pada modal tambah titik
 updateManualJenisDropdown();
 
-// 1. Setup 3 Basemap Layers
+// 1. Setup Basemap Layers
 const basemapLayers = {
     osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> | Batas Wilayah: <a href="https://github.com/cahyadsn/wilayah_boundaries" target="_blank" class="underline">cahyadsn</a>',
@@ -36,23 +36,13 @@ const basemapLayers = {
 const map = L.map('map', {
     center: [-2.5, 118.0],
     zoom: 5,
+    zoomControl: false,
     layers: [basemapLayers.osm]
 });
+window.map = map;
 
 // Muat poligon batas wilayah lokal
 loadWilayahBoundaries(map);
-
-L.control.layers(
-    {
-        "🗺️ OpenStreetMap": basemapLayers.osm,
-        "⛰️ Esri World Topo": basemapLayers.topo,
-        "🛰️ Esri Satelit": basemapLayers.satellite
-    },
-    {
-        "📐 Batas Kab/Kota (GeoJSON)": batasWilayahLayer
-    },
-    { position: 'topright' }
-).addTo(map);
 
 // 2. Render Marker & Popup Survei
 const markersLayer = L.layerGroup().addTo(map);
@@ -65,17 +55,19 @@ function getMarkerIcon(status, isMyTask, routeOrder = null) {
     if (routeOrder !== null) {
         return L.divIcon({
             className: '',
-            html: `<div style="width:26px;height:26px;border-radius:50%;background:#1d4ed8;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;border:3px solid #fbbf24;box-shadow:0 3px 8px rgba(0,0,0,0.55);">${routeOrder}</div>`,
+            html: `<div style="width:26px;height:26px;border-radius:50%;background:#002966;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;border:3px solid #FABD03;box-shadow:0 3px 8px rgba(0,0,0,0.45);">${routeOrder}</div>`,
             iconSize: [26, 26],
             iconAnchor: [13, 13],
             popupAnchor: [0, -13]
         });
     }
 
-    const ringStyle = isMyTask ? 'box-shadow: 0 0 0 4px #f59e0b, 0 3px 8px rgba(0,0,0,0.5);' : 'box-shadow: 0 2px 6px rgba(0,0,0,0.4);';
+    const ringStyle = isMyTask
+        ? 'box-shadow: 0 0 0 3.5px #FABD03, 0 3px 8px rgba(0,0,0,0.45);'
+        : 'box-shadow: 0 2px 6px rgba(0,0,0,0.4);';
     return L.divIcon({
         className: '',
-        html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:3px solid #fff;${ringStyle}"></div>`,
+        html: `<div style="width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid #fff;${ringStyle}"></div>`,
         iconSize: [18, 18],
         iconAnchor: [9, 9],
         popupAnchor: [0, -10]
@@ -88,7 +80,7 @@ function escapeHtmlAttribute(value) {
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
-        "'": '&#039;'
+        "'": '&#039;' 
     })[character]);
 }
 
@@ -96,19 +88,21 @@ function buildPopupContent(item, lat, lng, isMyTask) {
     const routeNum = routeOrderMap[Number(item.id)] || null;
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) {
-        photosHtml = `<div class="grid grid-cols-3 gap-1.5 mt-2">`;
+        photosHtml = `<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; margin-top:8px;">`;
         item.photos.forEach(photo => {
-            const gpsTag = photo.photo_latitude ? `GPS: ${Number(photo.photo_latitude).toFixed(4)}, ${Number(photo.photo_longitude).toFixed(4)}` : 'Upload File';
+            const gpsTag = photo.photo_latitude
+                ? `GPS: ${Number(photo.photo_latitude).toFixed(4)}, ${Number(photo.photo_longitude).toFixed(4)}`
+                : 'Upload File';
             photosHtml += `
-                <div class="relative group border rounded overflow-hidden">
-                    <a href="/storage/${photo.file_path}" target="_blank">
-                        <img src="/storage/${photo.file_path}" class="w-full h-16 object-cover" title="${gpsTag}">
+                <div style="position:relative; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#f8fafc;">
+                    <a href="/storage/${photo.file_path}" target="_blank" style="display:block;">
+                        <img src="/storage/${photo.file_path}" style="width:100%; height:56px; object-fit:cover; display:block;" title="${gpsTag}">
                     </a>
                     ${isAuthenticated ? `
-                    <form method="POST" action="/survey/photo/${photo.id}" onsubmit="return confirm('Hapus foto ini?')" class="absolute top-0 right-0">
+                    <form method="POST" action="/survey/photo/${photo.id}" onsubmit="return confirm('Hapus foto ini?')" style="position:absolute; top:3px; right:3px; margin:0;">
                         <input type="hidden" name="_token" value="${csrfToken}">
                         <input type="hidden" name="_method" value="DELETE">
-                        <button type="submit" class="bg-red-600 text-white text-[10px] px-1 leading-tight">×</button>
+                        <button type="submit" title="Hapus Foto" style="width:18px; height:18px; padding:0 !important; border:none; border-radius:5px; background:rgba(220,38,38,0.92); color:#fff; font-size:11px; font-weight:700; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;">×</button>
                     </form>` : ''}
                 </div>
             `;
@@ -117,28 +111,46 @@ function buildPopupContent(item, lat, lng, isMyTask) {
     }
 
     let popupContent = `
-        <div class="text-xs space-y-1.5">
-            ${routeNum ? `<div class="bg-blue-700 text-white px-2 py-1 rounded font-bold text-[10px]">🧭 RUTE KUNJUNGAN URUTAN #${routeNum}</div>` : ''}
-            ${isMyTask ? `<div class="bg-amber-100 text-amber-900 border border-amber-300 px-2 py-1 rounded font-bold text-[10px]">📌 TUGAS SURVEI ANDA</div>` : ''}
-            <div class="flex justify-between items-start gap-1">
-                <span class="font-bold text-sm text-gray-900 leading-snug">${item.nama_infrastruktur}</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white shrink-0 ${item.status_survei === 'sudah' ? 'bg-green-600' : 'bg-red-600'}">
+        <div style="font-size:12px;">
+            ${routeNum ? `
+                <div style="display:inline-flex; align-items:center; gap:5px; background:#002966; color:#FABD03; padding:3px 8px; border-radius:6px; font-weight:700; font-size:10px; margin-bottom:6px; letter-spacing:0.3px;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                    <span>RUTE KUNJUNGAN #${routeNum}</span>
+                </div>` : ''}
+            ${isMyTask ? `
+                <div style="display:inline-flex; align-items:center; gap:5px; background:#fffbeb; color:#92400e; border:1px solid #fcd34d; padding:3px 8px; border-radius:6px; font-weight:700; font-size:10px; margin-bottom:6px;">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.686-6-10a6 6 0 1112 0c0 4.314-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+                    <span>TUGAS SURVEI ANDA</span>
+                </div>` : ''}
+
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                <span style="font-weight:800; font-size:13.5px; color:#002966; line-height:1.3; padding-right:20px;">${item.nama_infrastruktur}</span>
+            </div>
+
+            <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px;">
+                <span style="padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; color:#fff; background:${item.status_survei === 'sudah' ? '#16a34a' : '#dc2626'};">
                     ${item.status_survei === 'sudah' ? 'SUDAH SURVEI' : 'BELUM SURVEI'}
                 </span>
+                <span style="padding:2px 7px; border-radius:6px; font-size:10px; font-weight:700; background:#f1f5f9; color:#002966; border:1px solid #e2e8f0;">
+                    ${item.kategori}
+                </span>
             </div>
-            <div class="text-gray-600">
-                <span class="font-semibold">Kategori:</span> ${item.kategori} | 
-                <span class="font-semibold">Wilayah:</span> ${item.kota_kabupaten}, ${item.provinsi}
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px 10px; space-y:3px; font-size:11px; color:#475569;">
+                <div><strong style="color:#1e293b;">Wilayah:</strong> ${item.kota_kabupaten}, ${item.provinsi}</div>
+                ${item.nama_hasil_survey ? `<div style="margin-top:2px;"><strong style="color:#1e293b;">Hasil Survei:</strong> ${item.nama_hasil_survey}</div>` : ''}
+                <div style="margin-top:2px; font-family:monospace; font-size:10.5px; color:#64748b;">${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
+                ${item.surveyor ? `<div style="margin-top:3px; color:#002966; font-weight:600;">Petugas: ${item.surveyor.name}</div>` : ''}
             </div>
-            ${item.nama_hasil_survey ? `<div class="text-gray-700"><span class="font-semibold">Nama hasil survei:</span> ${item.nama_hasil_survey}</div>` : ''}
-            <div class="text-gray-500 text-[11px]">Koordinat Data: ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
-            ${item.surveyor ? `<div class="text-[11px] text-blue-700 font-medium">Disurvei oleh: ${item.surveyor.name}</div>` : ''}
+
             ${photosHtml}
+
             ${(isAuthenticated && item.photos && item.photos.length > 0) ? `
-                <div class="mt-1.5">
+                <div style="margin-top:8px;">
                     <a href="/survey/${item.id}/download-zip"
-                       class="block text-center bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold py-1 rounded-lg transition">
-                        📦 Unduh Semua Foto (.ZIP)
+                       style="display:flex; align-items:center; justify-content:center; gap:6px; background:#f1f5f9; color:#002966; border:1px solid #cbd5e1; text-decoration:none; font-size:11px; font-weight:700; padding:6px 10px; border-radius:9px;">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/></svg>
+                        <span>Unduh Semua Foto (.ZIP)</span>
                     </a>
                 </div>
             ` : ''}
@@ -147,58 +159,68 @@ function buildPopupContent(item, lat, lng, isMyTask) {
     if (isAuthenticated) {
         const sisaSlot = 5 - (item.photos ? item.photos.length : 0);
         popupContent += `
-            <hr class="my-2 border-gray-200">
-            <form method="POST" action="/survey/${item.id}/update" enctype="multipart/form-data" class="space-y-2">
+            <hr>
+            <form method="POST" action="/survey/${item.id}/update" enctype="multipart/form-data">
                 <input type="hidden" name="_token" value="${csrfToken}">
                 <input type="hidden" name="survey_latitude" id="lat-${item.id}" value="${lat}">
                 <input type="hidden" name="survey_longitude" id="lng-${item.id}" value="${lng}">
 
                 <div>
-                    <label class="font-semibold block text-gray-700 mb-0.5">Status Survei:</label>
-                    <select name="status_survei" class="w-full border border-gray-300 rounded-lg p-1.5 bg-gray-50">
+                    <label>Status Survei</label>
+                    <select name="status_survei">
                         <option value="belum" ${item.status_survei === 'belum' ? 'selected' : ''}>Belum Survei</option>
                         <option value="sudah" ${item.status_survei === 'sudah' ? 'selected' : ''}>Sudah Survei</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="font-semibold block text-gray-700 mb-0.5">Jenis Infrastruktur (${item.kategori}):</label>
+                    <label>Jenis Infrastruktur (${item.kategori})</label>
                     ${renderCustomJenisDropdown(`popup-${item.id}`, item.kategori, item.jenis_infrastruktur || '')}
                 </div>
 
                 <div>
-                    <label class="font-semibold block text-gray-700 mb-0.5">Nama Hasil Survei:</label>
+                    <label>Nama Hasil Survei</label>
                     <input type="text" name="nama_hasil_survey" maxlength="255"
                            value="${escapeHtmlAttribute(item.nama_hasil_survey)}"
-                           placeholder="Contoh: Jembatan Meureudu (Lajur Nasional)"
-                           class="w-full border border-gray-300 rounded-lg p-1.5">
+                           placeholder="Contoh: Jembatan Meureudu (Lajur Nasional)">
                 </div>
 
                 <div>
-                    <label class="font-semibold block text-gray-700 mb-0.5">Catatan / Alasan Verifikasi:</label>
-                    <textarea name="alasan_verifikasi" rows="2" class="w-full border border-gray-300 rounded-lg p-1.5">${item.alasan_verifikasi || ''}</textarea>
+                    <label>Catatan / Alasan Verifikasi</label>
+                    <textarea name="alasan_verifikasi" rows="2" placeholder="Tulis catatan kondisi lapangan...">${item.alasan_verifikasi || ''}</textarea>
                 </div>
 
                 ${sisaSlot > 0 ? `
-                <div class="bg-gray-50 p-2 rounded-lg border border-gray-200">
-                    <label class="font-semibold block text-gray-700 mb-1">Tambah Foto (Sisa kuota: ${sisaSlot}/5):</label>
-                    <input type="file" name="photos[]" multiple accept="image/*" class="w-full text-[11px] mb-1.5">
+                <div style="background:#f8fafc; padding:9px; border-radius:10px; border:1px solid #e2e8f0; margin-top:10px;">
+                    <label style="margin-top:0 !important;">Dokumentasi Foto (Sisa kuota: ${sisaSlot}/5)</label>
+                    <input type="file" name="photos[]" multiple accept="image/*" style="margin-bottom:7px;">
 
-                    <button type="button" onclick="openCamera(${item.id})" class="w-full bg-indigo-600 text-white py-1.5 rounded-lg text-[11px] font-medium hover:bg-indigo-700">
-                        📸 Buka Kamera + Rekam GPS
+                    <button type="button" onclick="openCamera(${item.id})"
+                            style="width:100%; background:#002966; color:#ffffff; border:none; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <svg width="14" height="14" fill="none" stroke="#FABD03" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        <span>Buka Kamera + Rekam GPS</span>
                     </button>
-                    <div id="cam-box-${item.id}" class="hidden mt-2 space-y-1">
-                        <video id="video-${item.id}" autoplay playsinline class="w-full rounded bg-black max-h-36"></video>
-                        <button type="button" onclick="takeSnapshot(${item.id})" class="w-full bg-amber-500 text-white py-1 rounded text-[11px] font-bold">
+
+                    <div id="cam-box-${item.id}" class="hidden" style="margin-top:8px;">
+                        <video id="video-${item.id}" autoplay playsinline style="width:100%; border-radius:8px; background:#000; max-height:140px; display:block;"></video>
+                        <button type="button" onclick="takeSnapshot(${item.id})"
+                                style="width:100%; margin-top:6px; background:#FABD03; color:#002966; border:none; font-weight:800;">
                             Ambil Jepretan GPS
                         </button>
                     </div>
                     <div id="cam-inputs-${item.id}"></div>
                 </div>
-                ` : `<div class="text-[11px] text-amber-700 bg-amber-50 p-1.5 rounded">Kuota maksimal 5 foto telah tercapai.</div>`}
+                ` : `<div style="font-size:11px; color:#92400e; background:#fffbeb; border:1px solid #fcd34d; padding:7px 9px; border-radius:8px; margin-top:8px;">Kuota maksimal 5 foto telah tercapai.</div>`}
 
-                <button type="submit" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg hover:bg-emerald-700 shadow-sm">
-                    💾 Simpan Hasil Survei
+                <button type="submit"
+                        style="width:100%; margin-top:10px; background:#059669; color:#ffffff; border:none; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(5,150,105,0.22);">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Simpan Hasil Survei</span>
                 </button>
             </form>
         `;
@@ -238,8 +260,8 @@ function renderMapMarkers(onlyAssigned = false, shouldFitBounds = true) {
         });
 
         marker.bindPopup(buildPopupContent(item, lat, lng, isMyTask), {
-            maxWidth: 360,
-            minWidth: 320,
+            maxWidth: 340,
+            minWidth: 300,
             autoPanPadding: [30, 80]
         });
         markersLayer.addLayer(marker);
@@ -300,7 +322,8 @@ function focusToRoutePoint(infraId) {
 function clearActiveRouteOnMap() {
     routeOverlayLayer.clearLayers();
     routeOrderMap = {};
-    document.getElementById('floating-route-panel').classList.add('hidden');
+    const panel = document.getElementById('floating-route-panel');
+    if (panel) panel.style.display = 'none';
     renderMapMarkers(toggleAssignedEl ? toggleAssignedEl.checked : false, false);
     window.history.replaceState({}, '', window.location.pathname);
 }
@@ -313,7 +336,7 @@ async function initRouteFromQueryParams(idsArray, useGps) {
 
     const panel = document.getElementById('floating-route-panel');
     const statsEl = document.getElementById('floating-route-stats');
-    panel.classList.remove('hidden');
+    if (panel) panel.style.display = 'block';
 
     let startGps = useGps ? await getCurrentPositionPromise() : null;
 
@@ -374,20 +397,20 @@ async function initRouteFromQueryParams(idsArray, useGps) {
         if (wp.type === 'start') {
             const startIcon = L.divIcon({
                 className: '',
-                html: `<div style="width:26px;height:26px;border-radius:50%;background:#2563eb;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);">🚩</div>`,
-                iconSize: [26, 26],
-                iconAnchor: [13, 13]
+                html: `<div style="width:24px;height:24px;border-radius:50%;background:#002966;color:#FABD03;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.45);">S</div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
             });
             L.marker([wp.lat, wp.lng], { icon: startIcon })
-                .bindPopup('<strong>🚩 Titik Berangkat (Lokasi GPS Anda)</strong>')
+                .bindPopup('<strong>Titik Berangkat (Lokasi GPS Anda)</strong>')
                 .addTo(routeOverlayLayer);
         }
     });
 
     if (geometry) {
-        L.geoJSON(geometry, { style: { color: '#1d4ed8', weight: 5, opacity: 0.85 } }).addTo(routeOverlayLayer);
+        L.geoJSON(geometry, { style: { color: '#002966', weight: 5, opacity: 0.85 } }).addTo(routeOverlayLayer);
     } else if (bounds.length > 1) {
-        L.polyline(bounds, { color: '#1d4ed8', weight: 4, dashArray: '6, 8' }).addTo(routeOverlayLayer);
+        L.polyline(bounds, { color: '#002966', weight: 4, dashArray: '6, 8' }).addTo(routeOverlayLayer);
     }
 
     if (bounds.length > 0) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 15 });
@@ -396,7 +419,7 @@ async function initRouteFromQueryParams(idsArray, useGps) {
         const km = (distMeters / 1000).toFixed(1);
         const mins = Math.round(durSeconds / 60);
         const durStr = mins >= 60 ? `${Math.floor(mins / 60)} jam ${mins % 60} mnt` : `${mins} menit`;
-        statsEl.textContent = `${km} km • ± ${durStr}`;
+        statsEl.textContent = `${km} km | ± ${durStr}`;
     } else {
         statsEl.textContent = `${targetInfras.length} Titik Tujuan`;
     }
@@ -404,20 +427,20 @@ async function initRouteFromQueryParams(idsArray, useGps) {
     const listEl = document.getElementById('floating-route-list');
     listEl.innerHTML = orderedWaypoints.map(wp => {
         if (wp.type === 'start') {
-            return `<li class="py-1.5 flex items-center gap-2 text-blue-800 font-semibold">
-                        <span class="px-1.5 py-0.5 rounded bg-blue-600 text-white text-[10px]">Start</span>
+            return `<li style="padding:6px 4px; display:flex; align-items:center; gap:8px; color:#002966; font-weight:700; border-bottom:1px solid #f1f5f9;">
+                        <span style="padding:2px 6px; border-radius:5px; background:#002966; color:#FABD03; font-size:10px;">START</span>
                         <span>Lokasi GPS Anda</span>
                     </li>`;
         }
         const num = routeOrderMap[wp.id];
-        return `<li class="py-1.5 flex items-center justify-between gap-2">
-                    <button type="button" onclick="focusToRoutePoint(${wp.id})" class="text-left truncate flex-1 hover:text-blue-700">
-                        <span class="inline-block w-4 h-4 rounded-full bg-blue-700 text-white text-center text-[10px] font-bold mr-1">${num}</span>
-                        <strong class="text-gray-900">${wp.name}</strong>
-                        <span class="text-gray-500 text-[10px] block pl-5">${wp.kota}</span>
+        return `<li style="padding:7px 4px; display:flex; align-items:center; justify-content:space-between; gap:8px; border-bottom:1px solid #f1f5f9;">
+                    <button type="button" onclick="focusToRoutePoint(${wp.id})" style="background:none; border:none; padding:0; text-align:left; flex:1; cursor:pointer; overflow:hidden;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:99px; background:#002966; color:#fff; font-size:10px; font-weight:700; margin-right:5px;">${num}</span>
+                        <strong style="color:#0f172a; font-size:11.5px;">${wp.name}</strong>
+                        <span style="color:#64748b; font-size:10px; display:block; padding-left:23px;">${wp.kota}</span>
                     </button>
                     <button type="button" onclick="focusToRoutePoint(${wp.id})"
-                            class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded font-bold text-[10px] shrink-0">
+                            style="background:#FABD03; color:#002966; border:none; padding:4px 8px; border-radius:6px; font-weight:700; font-size:10px; cursor:pointer; flex-shrink:0;">
                         Survei
                     </button>
                 </li>`;
@@ -451,9 +474,20 @@ if (routeIdsParam) {
     renderMapMarkers(initialOnlyAssigned, true);
 }
 
-// 4. Mode Tambah Titik Klik Peta & Modal Import
+// 4. Mode Tambah Titik Klik Peta & Modal Import (Ikon Pin Terkunci, Tanpa Emoji)
 let isAddPointMode = false;
 let tempNewMarker = null;
+
+const ICON_PIN_ADD = `
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-5.686-6-10a6 6 0 1112 0c0 4.314-6 10-6 10z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v6M9 11h6"/>
+    </svg>`;
+
+const ICON_CLOSE_ADD = `
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>`;
 
 function toggleAddPointMode() {
     isAddPointMode = !isAddPointMode;
@@ -462,16 +496,14 @@ function toggleAddPointMode() {
     const mapContainer = document.getElementById('map');
 
     if (isAddPointMode) {
-        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-        btn.classList.add('bg-red-600', 'hover:bg-red-700');
-        btn.innerHTML = '✕ Batal Tambah';
-        banner.classList.remove('hidden');
+        btn.style.background = '#dc2626';
+        btn.innerHTML = `${ICON_CLOSE_ADD} <span class="tool-label">Batal Tambah</span>`;
+        if (banner) banner.classList.remove('hidden');
         mapContainer.style.cursor = 'crosshair';
     } else {
-        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
-        btn.classList.remove('bg-red-600', 'hover:bg-red-700');
-        btn.innerHTML = '➕ Tambah Titik';
-        banner.classList.add('hidden');
+        btn.style.background = '#059669';
+        btn.innerHTML = `${ICON_PIN_ADD} <span class="tool-label">Tambah Titik</span>`;
+        if (banner) banner.classList.add('hidden');
         mapContainer.style.cursor = '';
         if (tempNewMarker) {
             map.removeLayer(tempNewMarker);
@@ -577,12 +609,12 @@ function takeSnapshot(id) {
             const lng = pos.coords.longitude;
             const base64WithWatermark = renderPhotoWithWatermark(video, lat, lng);
             appendCameraInput(container, base64WithWatermark, lat, lng);
-            alert(`📸 Foto ber-watermark GPS & Jam berhasil direkam (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
+            alert(`Foto ber-watermark GPS & waktu berhasil direkam (${lat.toFixed(6)}, ${lng.toFixed(6)})`);
         },
         () => {
             const base64WithWatermark = renderPhotoWithWatermark(video, '', '');
             appendCameraInput(container, base64WithWatermark, '', '');
-            alert('📸 Foto dengan cap waktu berhasil diambil (GPS perangkat tidak aktif).');
+            alert('Foto dengan cap waktu berhasil diambil (GPS perangkat tidak aktif).');
         },
         { enableHighAccuracy: true, timeout: 8000 }
     );
@@ -593,9 +625,12 @@ function appendCameraInput(container, base64, lat, lng) {
         <input type="hidden" name="camera_photos[]" value="${base64}">
         <input type="hidden" name="camera_lat[]" value="${lat}">
         <input type="hidden" name="camera_lng[]" value="${lng}">
-        <div class="mt-1.5 border rounded overflow-hidden bg-white p-1">
-            <img src="${base64}" class="w-full h-24 object-cover rounded">
-            <div class="text-[10px] text-green-700 font-semibold mt-0.5">✓ Foto ber-watermark GPS & Jam siap disimpan</div>
+        <div style="margin-top:6px; border:1px solid #cbd5e1; border-radius:8px; overflow:hidden; background:#fff; padding:4px;">
+            <img src="${base64}" style="width:100%; height:96px; object-fit:cover; border-radius:6px; display:block;">
+            <div style="font-size:10px; color:#15803d; font-weight:700; margin-top:4px; display:flex; align-items:center; gap:4px;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>Foto ber-watermark GPS & Jam siap disimpan</span>
+            </div>
         </div>
     `);
 }
