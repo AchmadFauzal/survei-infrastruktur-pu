@@ -16,10 +16,10 @@ class InfrastructureManagementController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_objek', 'ilike', "%{$search}%")
-                  ->orWhere('kota', 'ilike', "%{$search}%")
-                  ->orWhere('provinsi', 'ilike', "%{$search}%")
-                  ->orWhere('jenis_infrastruktur', 'ilike', "%{$search}%");
+                $q->where('nama_infrastruktur', 'like', "%{$search}%")
+                  ->orWhere('kota_kabupaten', 'like', "%{$search}%")
+                  ->orWhere('provinsi', 'like', "%{$search}%")
+                  ->orWhere('jenis_infrastruktur', 'like', "%{$search}%");
             });
         }
 
@@ -28,7 +28,7 @@ class InfrastructureManagementController extends Controller
         }
 
         if ($request->filled('status_survei')) {
-            $query->where('status_survei', $request->status_survei);
+            $query->where('status_survey', $request->status_survei === 'sudah');
         }
 
         if ($request->filled('assigned_to')) {
@@ -48,10 +48,10 @@ class InfrastructureManagementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_objek'          => 'required|string|max:255',
-            'kategori'            => 'required|in:BM,CK,SDA,PS',
+            'nama_infrastruktur'          => 'required|string|max:255',
+            'kategori'            => 'required|in:BM,CK,SDA,PS,SETJEN',
             'jenis_infrastruktur' => 'nullable|string|max:255',
-            'kota'                => 'required|string|max:255',
+            'kota_kabupaten'      => 'required|string|max:255',
             'provinsi'            => 'required|string|max:255',
             'latitude'            => 'required|numeric|between:-90,90',
             'longitude'           => 'required|numeric|between:-180,180',
@@ -60,15 +60,15 @@ class InfrastructureManagementController extends Controller
 
         Infrastructure::create([
             'kode_infrastruktur'  => 'ADM-' . time(),
-            'nama_objek'          => $request->nama_objek,
+            'nama_infrastruktur'          => $request->nama_infrastruktur,
             'kategori'            => $request->kategori,
             'jenis_infrastruktur' => $request->jenis_infrastruktur,
-            'kota'                => $request->kota,
+            'kota_kabupaten'      => $request->kota_kabupaten,
             'provinsi'            => $request->provinsi,
             'latitude'            => $request->latitude,
             'longitude'           => $request->longitude,
             'assigned_to'         => $request->assigned_to,
-            'status_survei'       => 'belum',
+            'status_survey'       => false,
         ]);
 
         return back()->with('success', 'Data infrastruktur berhasil ditambahkan.');
@@ -77,10 +77,10 @@ class InfrastructureManagementController extends Controller
     public function update(Request $request, Infrastructure $infrastructure)
     {
         $request->validate([
-            'nama_objek'          => 'required|string|max:255',
-            'kategori'            => 'required|in:BM,CK,SDA,PS',
+            'nama_infrastruktur'          => 'required|string|max:255',
+            'kategori'            => 'required|in:BM,CK,SDA,PS,SETJEN',
             'jenis_infrastruktur' => 'nullable|string|max:255',
-            'kota'                => 'required|string|max:255',
+            'kota_kabupaten'      => 'required|string|max:255',
             'provinsi'            => 'required|string|max:255',
             'latitude'            => 'required|numeric|between:-90,90',
             'longitude'           => 'required|numeric|between:-180,180',
@@ -89,23 +89,23 @@ class InfrastructureManagementController extends Controller
         ]);
 
         $infrastructure->update([
-            'nama_objek'          => $request->nama_objek,
+            'nama_infrastruktur'          => $request->nama_infrastruktur,
             'kategori'            => $request->kategori,
             'jenis_infrastruktur' => $request->jenis_infrastruktur,
-            'kota'                => $request->kota,
+            'kota_kabupaten'      => $request->kota_kabupaten,
             'provinsi'            => $request->provinsi,
             'latitude'            => $request->latitude,
             'longitude'           => $request->longitude,
-            'status_survei'       => $request->status_survei,
+            'status_survey'       => $request->status_survei === 'sudah',
             'assigned_to'         => $request->assigned_to,
         ]);
 
-        return back()->with('success', "Data '{$infrastructure->nama_objek}' berhasil diperbarui.");
+        return back()->with('success', "Data '{$infrastructure->nama_infrastruktur}' berhasil diperbarui.");
     }
 
     public function destroy(Infrastructure $infrastructure)
     {
-        $nama = $infrastructure->nama_objek;
+        $nama = $infrastructure->nama_infrastruktur;
         $infrastructure->delete();
 
         return back()->with('success', "Data '{$nama}' berhasil dihapus.");

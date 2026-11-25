@@ -82,6 +82,16 @@ function getMarkerIcon(status, isMyTask, routeOrder = null) {
     });
 }
 
+function escapeHtmlAttribute(value) {
+    return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    })[character]);
+}
+
 function buildPopupContent(item, lat, lng, isMyTask) {
     const routeNum = routeOrderMap[Number(item.id)] || null;
     let photosHtml = '';
@@ -111,15 +121,16 @@ function buildPopupContent(item, lat, lng, isMyTask) {
             ${routeNum ? `<div class="bg-blue-700 text-white px-2 py-1 rounded font-bold text-[10px]">🧭 RUTE KUNJUNGAN URUTAN #${routeNum}</div>` : ''}
             ${isMyTask ? `<div class="bg-amber-100 text-amber-900 border border-amber-300 px-2 py-1 rounded font-bold text-[10px]">📌 TUGAS SURVEI ANDA</div>` : ''}
             <div class="flex justify-between items-start gap-1">
-                <span class="font-bold text-sm text-gray-900 leading-snug">${item.nama_objek}</span>
+                <span class="font-bold text-sm text-gray-900 leading-snug">${item.nama_infrastruktur}</span>
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white shrink-0 ${item.status_survei === 'sudah' ? 'bg-green-600' : 'bg-red-600'}">
                     ${item.status_survei === 'sudah' ? 'SUDAH SURVEI' : 'BELUM SURVEI'}
                 </span>
             </div>
             <div class="text-gray-600">
                 <span class="font-semibold">Kategori:</span> ${item.kategori} | 
-                <span class="font-semibold">Wilayah:</span> ${item.kota}, ${item.provinsi}
+                <span class="font-semibold">Wilayah:</span> ${item.kota_kabupaten}, ${item.provinsi}
             </div>
+            ${item.nama_hasil_survey ? `<div class="text-gray-700"><span class="font-semibold">Nama hasil survei:</span> ${item.nama_hasil_survey}</div>` : ''}
             <div class="text-gray-500 text-[11px]">Koordinat Data: ${lat.toFixed(6)}, ${lng.toFixed(6)}</div>
             ${item.surveyor ? `<div class="text-[11px] text-blue-700 font-medium">Disurvei oleh: ${item.surveyor.name}</div>` : ''}
             ${photosHtml}
@@ -153,6 +164,14 @@ function buildPopupContent(item, lat, lng, isMyTask) {
                 <div>
                     <label class="font-semibold block text-gray-700 mb-0.5">Jenis Infrastruktur (${item.kategori}):</label>
                     ${renderCustomJenisDropdown(`popup-${item.id}`, item.kategori, item.jenis_infrastruktur || '')}
+                </div>
+
+                <div>
+                    <label class="font-semibold block text-gray-700 mb-0.5">Nama Hasil Survei:</label>
+                    <input type="text" name="nama_hasil_survey" maxlength="255"
+                           value="${escapeHtmlAttribute(item.nama_hasil_survey)}"
+                           placeholder="Contoh: Jembatan Meureudu (Lajur Nasional)"
+                           class="w-full border border-gray-300 rounded-lg p-1.5">
                 </div>
 
                 <div>
@@ -308,8 +327,8 @@ async function initRouteFromQueryParams(idsArray, useGps) {
             id: Number(pt.id),
             lat: parseFloat(pt.latitude),
             lng: parseFloat(pt.longitude),
-            name: pt.nama_objek,
-            kota: pt.kota
+            name: pt.nama_infrastruktur,
+            kota: pt.kota_kabupaten
         });
     });
 
@@ -478,7 +497,7 @@ map.on('click', function(e) {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-    setTimeout(() => document.getElementById('manual_nama_objek').focus(), 100);
+    setTimeout(() => document.getElementById('manual_nama_infrastruktur').focus(), 100);
     autoDetectRegion(lat, lng);
 });
 

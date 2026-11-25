@@ -19,14 +19,14 @@ class SurveyorDashboardController extends Controller
 
         $query = Infrastructure::with('photos')
             ->where('surveyed_by', $userId)
-            ->where('status_survei', 'sudah');
+            ->where('status_survey', true);
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_objek', 'ilike', "%{$search}%")
-                  ->orWhere('kota', 'ilike', "%{$search}%")
-                  ->orWhere('jenis_infrastruktur', 'ilike', "%{$search}%");
+                $q->where('nama_infrastruktur', 'like', "%{$search}%")
+                  ->orWhere('kota_kabupaten', 'like', "%{$search}%")
+                  ->orWhere('jenis_infrastruktur', 'like', "%{$search}%");
             });
         }
 
@@ -37,10 +37,10 @@ class SurveyorDashboardController extends Controller
         $mySurveys = $query->latest('surveyed_at')->get();
 
         $stats = [
-            'tugas_aktif'  => Infrastructure::where('assigned_to', $userId)->where('status_survei', 'belum')->count(),
-            'saya_survei'  => Infrastructure::where('surveyed_by', $userId)->where('status_survei', 'sudah')->count(),
+            'tugas_aktif'  => Infrastructure::where('assigned_to', $userId)->where('status_survey', false)->count(),
+            'saya_survei'  => Infrastructure::where('surveyed_by', $userId)->where('status_survey', true)->count(),
             'total_foto'   => SurveyPhoto::whereHas('infrastructure', fn($q) => $q->where('surveyed_by', $userId))->count(),
-            'sisa_wilayah' => Infrastructure::where('status_survei', 'belum')->count(),
+            'sisa_wilayah' => Infrastructure::where('status_survey', false)->count(),
         ];
 
         return view('surveyor.dashboard', compact('mySurveys', 'stats'));
@@ -54,19 +54,19 @@ class SurveyorDashboardController extends Controller
         $userId = Auth::id();
 
         $assignedTasks = Infrastructure::where('assigned_to', $userId)
-            ->where('status_survei', 'belum')
+            ->where('status_survey', false)
             ->latest()
             ->get();
 
-        $allUnsurveyed = Infrastructure::where('status_survei', 'belum')
+        $allUnsurveyed = Infrastructure::where('status_survey', false)
             ->orderBy('provinsi')
-            ->orderBy('kota')
-            ->orderBy('nama_objek')
+            ->orderBy('kota_kabupaten')
+            ->orderBy('nama_infrastruktur')
             ->get();
 
         $stats = [
             'tugas_aktif'  => $assignedTasks->count(),
-            'saya_survei'  => Infrastructure::where('surveyed_by', $userId)->where('status_survei', 'sudah')->count(),
+            'saya_survei'  => Infrastructure::where('surveyed_by', $userId)->where('status_survey', true)->count(),
             'sisa_wilayah' => $allUnsurveyed->count(),
         ];
 

@@ -16,7 +16,7 @@ class SurveyController extends Controller
         $request->validate([
             'status_survei'       => 'required|in:sudah,belum',
             'jenis_infrastruktur' => 'nullable|string|max:255',
-            'nama_hasil_survei'   => 'nullable|string|max:255',
+            'nama_hasil_survey'   => 'nullable|string|max:255',
             'alasan_verifikasi'   => 'nullable|string',
             'survey_latitude'     => 'nullable|numeric',
             'survey_longitude'    => 'nullable|numeric',
@@ -38,9 +38,9 @@ class SurveyController extends Controller
 
         // 1. Update data infrastruktur
         $infrastructure->update([
-            'status_survei'       => $request->status_survei,
+            'status_survey'       => $request->status_survei === 'sudah',
             'jenis_infrastruktur' => $request->jenis_infrastruktur,
-            'nama_hasil_survei'   => $request->nama_hasil_survei,
+            'nama_hasil_survey'   => $request->nama_hasil_survey,
             'alasan_verifikasi'   => $request->alasan_verifikasi,
             'survey_latitude'     => $request->survey_latitude ?? $infrastructure->survey_latitude,
             'survey_longitude'    => $request->survey_longitude ?? $infrastructure->survey_longitude,
@@ -118,7 +118,7 @@ class SurveyController extends Controller
         }
 
         $infrastructure = $photo->infrastructure;
-        $namaInfra = $this->sanitizeFileName($infrastructure->nama_objek ?? 'Infrastruktur');
+        $namaInfra = $this->sanitizeFileName($infrastructure->nama_infrastruktur ?? 'Infrastruktur');
 
         $allPhotoIds = $infrastructure
             ? $infrastructure->photos()->orderBy('id')->pluck('id')->toArray()
@@ -144,7 +144,7 @@ class SurveyController extends Controller
             return back()->withErrors(['file' => 'Belum ada foto dokumentasi pada titik ini untuk diunduh.']);
         }
 
-        $namaInfra = $this->sanitizeFileName($infrastructure->nama_objek ?? 'Infrastruktur');
+        $namaInfra = $this->sanitizeFileName($infrastructure->nama_infrastruktur ?? 'Infrastruktur');
         $zipFileName = "{$namaInfra}_Dokumentasi_Foto.zip";
         $tempDir = storage_path('app/temp');
 

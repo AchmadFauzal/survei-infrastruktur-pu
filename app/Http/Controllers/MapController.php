@@ -19,10 +19,10 @@ class MapController extends Controller
     public function storePoint(Request $request)
     {
         $request->validate([
-            'nama_objek'          => 'required|string|max:255',
+            'nama_infrastruktur'          => 'required|string|max:255',
             'kategori'            => 'required|in:BM,CK,SDA,PS,SETJEN',
             'jenis_infrastruktur' => 'nullable|string|max:255',
-            'kota'                => 'required|string|max:255',
+            'kota_kabupaten'      => 'required|string|max:255',
             'provinsi'            => 'required|string|max:255',
             'latitude'            => 'required|numeric|between:-90,90',
             'longitude'           => 'required|numeric|between:-180,180',
@@ -30,14 +30,14 @@ class MapController extends Controller
 
         Infrastructure::create([
             'kode_infrastruktur'  => 'MANUAL-' . time(),
-            'nama_objek'          => $request->nama_objek,
+            'nama_infrastruktur'          => $request->nama_infrastruktur,
             'kategori'            => $request->kategori,
             'jenis_infrastruktur' => $request->jenis_infrastruktur,
-            'kota'                => $request->kota,
+            'kota_kabupaten'      => $request->kota_kabupaten,
             'provinsi'            => $request->provinsi,
             'latitude'            => $request->latitude,
             'longitude'           => $request->longitude,
-            'status_survei'       => 'belum',
+            'status_survey'       => false,
         ]);
 
         return back()->with('success', 'Titik infrastruktur baru berhasil ditambahkan ke peta!');
@@ -90,7 +90,7 @@ class MapController extends Controller
             // Normalisasi key menjadi lowercase agar fleksibel membaca berbagai nama kolom CSV/JSON
             $item = array_change_key_case($row, CASE_LOWER);
 
-            $nama = $item['nama_objek'] ?? $item['nama_infrastruktur'] ?? $item['nama'] ?? null;
+            $nama = $item['nama_infrastruktur'] ?? $item['nama_infrastruktur'] ?? $item['nama'] ?? null;
             $lat  = $item['latitude'] ?? $item['lat'] ?? null;
             $lon  = $item['longitude'] ?? $item['lon'] ?? $item['lng'] ?? null;
 
@@ -103,23 +103,49 @@ class MapController extends Controller
 
             Infrastructure::create([
                 'kode_infrastruktur'  => $item['kode_infrastruktur'] ?? $item['id'] ?? ('IMP-' . uniqid()),
-                'nama_objek'          => trim($nama),
+                'nama_infrastruktur'          => trim($nama),
                 'kategori'            => $kategori,
                 'jenis_infrastruktur' => $item['jenis_infrastruktur'] ?? $item['jenis'] ?? null,
-                'kota'                => trim($item['kota'] ?? $item['kota_kabupaten'] ?? '-'),
+                'kota_kabupaten'      => trim($item['kota_kabupaten'] ?? $item['kota'] ?? '-'),
                 'provinsi'            => trim($item['provinsi'] ?? '-'),
                 'latitude'            => (float) $lat,
                 'longitude'           => (float) $lon,
-                'status_survei'       => 'belum',
+                'status_survey'       => $this->parseBoolean($item['status_survey'] ?? $item['status_survei'] ?? false),
+                'status_lapor_big'    => $this->parseBoolean($item['status_lapor_big'] ?? false),
+                'is_coordinates_close' => $this->parseNullableBoolean($item['is_coordinates_close'] ?? null),
+                'yolo_detection'      => $this->parseNullableBoolean($item['yolo_detection'] ?? null),
+                'best_score'          => is_numeric($item['best_score'] ?? null) ? (float) $item['best_score'] : null,
+                'g_latitude'          => is_numeric($item['g_latitude'] ?? null) ? (float) $item['g_latitude'] : null,
+                'g_longitude'         => is_numeric($item['g_longitude'] ?? null) ? (float) $item['g_longitude'] : null,
+                'distance_diff_m'     => is_numeric($item['distance_diff_m'] ?? null) ? (float) $item['distance_diff_m'] : null,
             ]);
 
             $insertedCount++;
         }
 
         if ($insertedCount === 0) {
-            return back()->withErrors(['file_import' => 'Tidak ada baris valid yang dapat diimpor. Pastikan file memiliki kolom nama_objek (atau nama), latitude, dan longitude.']);
+            return back()->withErrors(['file_import' => 'Tidak ada baris valid yang dapat diimpor. Pastikan file memiliki kolom nama_infrastruktur (atau nama), latitude, dan longitude.']);
         }
 
         return back()->with('success', "Berhasil mengimpor {$insertedCount} titik infrastruktur ke dalam peta!");
+    }
+
+    private function parseBoolean(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        $normalized = strtolower(trim((string) $value));
+        return in_array($normalized, ['1', 'true', 'ya', 'y', 'yes', 'sudah'], true);
+    }
+
+    private function parseNullableBoolean(mixed $value): ?bool
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return $this->parseBoolean($value);
     }
 }

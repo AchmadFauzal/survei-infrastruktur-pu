@@ -81,10 +81,10 @@
 
             <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Kota/Kabupaten</label>
-                <select name="kota" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs">
+                <select name="kota_kabupaten" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs">
                     <option value="">Semua Kota</option>
                     @foreach($daftarKota as $kota)
-                        <option value="{{ $kota }}" {{ request('kota') == $kota ? 'selected' : '' }}>{{ $kota }}</option>
+                        <option value="{{ $kota }}" {{ request('kota_kabupaten') == $kota ? 'selected' : '' }}>{{ $kota }}</option>
                     @endforeach
                 </select>
             </div>
@@ -129,14 +129,14 @@
                     @forelse($infrastructures as $item)
                         <tr class="hover:bg-gray-50">
                             <td class="py-3 px-4">
-                                <p class="font-bold text-gray-900 text-sm">{{ $item->nama_objek }}</p>
+                                <p class="font-bold text-gray-900 text-sm">{{ $item->nama_infrastruktur }}</p>
                                 <p class="text-gray-500">{{ $item->jenis_infrastruktur ?? 'Jenis belum diisi' }}</p>
                             </td>
                             <td class="py-3 px-4">
                                 <span class="px-2.5 py-1 font-bold rounded-full bg-slate-200 text-slate-800">{{ $item->kategori }}</span>
                             </td>
                             <td class="py-3 px-4">
-                                <p class="font-semibold">{{ $item->kota }}, {{ $item->provinsi }}</p>
+                                <p class="font-semibold">{{ $item->kota_kabupaten }}, {{ $item->provinsi }}</p>
                                 <p class="text-gray-400">{{ $item->latitude }}, {{ $item->longitude }}</p>
                             </td>
                             <td class="py-3 px-4">
@@ -201,6 +201,8 @@
 
                     <p class="text-gray-500">Jenis Infrastruktur & Nama Hasil Survei:</p>
                     <p id="det_jenis" class="font-semibold text-gray-800"></p>
+                    <p class="text-gray-500 mt-2">Nama Hasil Survei:</p>
+                    <p id="det_nama_hasil_survey" class="font-semibold text-gray-800"></p>
                 </div>
                 <div>
                     <p class="text-gray-500">Koordinat Awal Database:</p>
@@ -262,11 +264,12 @@
 
         function openDetailModal(item) {
             document.getElementById('det_kategori').textContent = item.kategori;
-            document.getElementById('det_nama').textContent = item.nama_objek;
-            document.getElementById('det_wilayah').textContent = `${item.kota}, ${item.provinsi}`;
+            document.getElementById('det_nama').textContent = item.nama_infrastruktur;
+            document.getElementById('det_wilayah').textContent = `${item.kota_kabupaten}, ${item.provinsi}`;
             document.getElementById('det_surveyor').textContent = item.surveyor ? item.surveyor.name : 'Belum disurvei';
             document.getElementById('det_waktu').textContent = item.surveyed_at ? new Date(item.surveyed_at).toLocaleString('id-ID') : '-';
-            document.getElementById('det_jenis').textContent = `${item.jenis_infrastruktur || '-'} / ${item.nama_hasil_survei || '-'}`;
+            document.getElementById('det_jenis').textContent = item.jenis_infrastruktur || '-';
+            document.getElementById('det_nama_hasil_survey').textContent = item.nama_hasil_survey || '-';
 
             const origLat = parseFloat(item.latitude);
             const origLng = parseFloat(item.longitude);

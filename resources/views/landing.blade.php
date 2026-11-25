@@ -175,7 +175,7 @@
 
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Nama Infrastruktur <span class="text-red-500">*</span></label>
-                    <input type="text" name="nama_objek" id="manual_nama_objek" required placeholder="Contoh: Jembatan Krueng Meureudu"
+                    <input type="text" name="nama_infrastruktur" id="manual_nama_infrastruktur" required placeholder="Contoh: Jembatan Krueng Meureudu"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-200 focus:border-emerald-500">
                 </div>
 
@@ -207,7 +207,7 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block font-semibold text-gray-700 mb-1">Kota / Kabupaten <span class="text-red-500">*</span></label>
-                            <input type="text" name="kota" id="manual_kota" required placeholder="Otomatis terisi..."
+                            <input type="text" name="kota_kabupaten" id="manual_kota" required placeholder="Otomatis terisi..."
                                    class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
                         </div>
                         <div>
@@ -242,8 +242,8 @@
                 @csrf
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-gray-600 space-y-1">
                     <p class="font-bold text-gray-800">Format Kolom yang Didukung:</p>
-                    <p>• <strong>Wajib:</strong> <code class="bg-gray-200 px-1 rounded">nama_objek</code>, <code class="bg-gray-200 px-1 rounded">latitude</code>, <code class="bg-gray-200 px-1 rounded">longitude</code></p>
-                    <p>• <strong>Opsional:</strong> <code class="bg-gray-200 px-1 rounded">kategori</code> (BM/CK/PS/SDA/SETJEN), <code class="bg-gray-200 px-1 rounded">jenis_infrastruktur</code>, <code class="bg-gray-200 px-1 rounded">kota</code>, <code class="bg-gray-200 px-1 rounded">provinsi</code></p>
+                    <p>• <strong>Wajib:</strong> <code class="bg-gray-200 px-1 rounded">nama_infrastruktur</code>, <code class="bg-gray-200 px-1 rounded">latitude</code>, <code class="bg-gray-200 px-1 rounded">longitude</code></p>
+                    <p>• <strong>Opsional:</strong> <code class="bg-gray-200 px-1 rounded">kategori</code> (BM/CK/PS/SDA/SETJEN), <code class="bg-gray-200 px-1 rounded">jenis_infrastruktur</code>, <code class="bg-gray-200 px-1 rounded">kota_kabupaten</code>, <code class="bg-gray-200 px-1 rounded">provinsi</code></p>
                 </div>
 
                 <div>

@@ -121,11 +121,11 @@
                             </td>
                             <td class="py-3 px-4">
                                 <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-200 text-slate-800">{{ $item->kategori }}</span>
-                                <p class="font-bold text-gray-900 text-sm mt-1">{{ $item->nama_objek }}</p>
+                                <p class="font-bold text-gray-900 text-sm mt-1">{{ $item->nama_infrastruktur }}</p>
                                 <p class="text-gray-500">{{ $item->jenis_infrastruktur ?? '-' }}</p>
                             </td>
                             <td class="py-3 px-4">
-                                <p class="font-semibold text-gray-800">{{ $item->kota }}, {{ $item->provinsi }}</p>
+                                <p class="font-semibold text-gray-800">{{ $item->kota_kabupaten }}, {{ $item->provinsi }}</p>
                                 <p class="text-gray-400 font-mono text-[11px]">{{ $item->latitude }}, {{ $item->longitude }}</p>
                             </td>
                             <td class="py-3 px-4">
@@ -144,7 +144,7 @@
                                     Edit
                                 </button>
                                 <form method="POST" action="{{ route('admin.assignments.destroy', $item) }}" class="inline"
-                                      onsubmit="return confirm('Batalkan penugasan untuk {{ $item->nama_objek }}?')">
+                                      onsubmit="return confirm('Batalkan penugasan untuk {{ $item->nama_infrastruktur }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded font-semibold">
@@ -202,9 +202,9 @@
                                 <div class="flex-1">
                                     <p class="font-bold text-gray-900">
                                         <span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-200 mr-1">{{ $infra->kategori }}</span>
-                                        {{ $infra->nama_objek }}
+                                        {{ $infra->nama_infrastruktur }}
                                     </p>
-                                    <p class="text-[11px] text-gray-500">{{ $infra->kota }}, {{ $infra->provinsi }} ({{ $infra->latitude }}, {{ $infra->longitude }})</p>
+                                    <p class="text-[11px] text-gray-500">{{ $infra->kota_kabupaten }}, {{ $infra->provinsi }} ({{ $infra->latitude }}, {{ $infra->longitude }})</p>
                                 </div>
                             </label>
                         @empty
@@ -247,13 +247,13 @@
 
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Nama Objek Infrastruktur *</label>
-                    <input type="text" name="nama_objek" id="edit_assign_nama" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <input type="text" name="nama_infrastruktur" id="edit_assign_nama" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Kota / Kabupaten *</label>
-                        <input type="text" name="kota" id="edit_assign_kota" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <input type="text" name="kota_kabupaten" id="edit_assign_kota" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Provinsi *</label>
@@ -335,8 +335,8 @@
         function openEditAssignmentModal(item) {
             document.getElementById('editAssignmentForm').action = `/admin/assignments/${item.id}`;
             document.getElementById('edit_assign_surveyor').value = item.assigned_to || '';
-            document.getElementById('edit_assign_nama').value = item.nama_objek;
-            document.getElementById('edit_assign_kota').value = item.kota;
+            document.getElementById('edit_assign_nama').value = item.nama_infrastruktur;
+            document.getElementById('edit_assign_kota').value = item.kota_kabupaten;
             document.getElementById('edit_assign_provinsi').value = item.provinsi;
             document.getElementById('edit_assign_status').value = item.status_survei;
 

@@ -120,14 +120,14 @@
                                 <input type="checkbox" value="{{ $item->id }}" class="row-checkbox w-4 h-4 accent-blue-600 rounded cursor-pointer">
                             </td>
                             <td class="py-3 px-4">
-                                <p class="font-bold text-gray-900 text-sm">{{ $item->nama_objek }}</p>
+                                <p class="font-bold text-gray-900 text-sm">{{ $item->nama_infrastruktur }}</p>
                                 <p class="text-gray-500">{{ $item->jenis_infrastruktur ?? '-' }}</p>
                             </td>
                             <td class="py-3 px-4">
                                 <span class="px-2.5 py-1 font-bold rounded-full bg-slate-200 text-slate-800">{{ $item->kategori }}</span>
                             </td>
                             <td class="py-3 px-4">
-                                <p class="font-semibold text-gray-800">{{ $item->kota }}, {{ $item->provinsi }}</p>
+                                <p class="font-semibold text-gray-800">{{ $item->kota_kabupaten }}, {{ $item->provinsi }}</p>
                                 <p class="text-gray-400 font-mono text-[11px]">{{ $item->latitude }}, {{ $item->longitude }}</p>
                             </td>
                             <td class="py-3 px-4">
@@ -152,7 +152,7 @@
                                     Edit
                                 </button>
                                 <form method="POST" action="{{ route('admin.infrastructures.destroy', $item) }}" class="inline"
-                                      onsubmit="return confirm('Hapus titik {{ $item->nama_objek }}?')">
+                                      onsubmit="return confirm('Hapus titik {{ $item->nama_infrastruktur }}?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded font-semibold">
@@ -185,7 +185,7 @@
                 @csrf
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Nama Objek Infrastruktur *</label>
-                    <input type="text" name="nama_objek" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <input type="text" name="nama_infrastruktur" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -205,7 +205,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Kota / Kabupaten *</label>
-                        <input type="text" name="kota" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <input type="text" name="kota_kabupaten" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Provinsi *</label>
@@ -251,7 +251,7 @@
                 @method('PUT')
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Nama Objek Infrastruktur *</label>
-                    <input type="text" name="nama_objek" id="edit_nama_objek" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <input type="text" name="nama_infrastruktur" id="edit_nama_infrastruktur" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -271,7 +271,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Kota / Kabupaten *</label>
-                        <input type="text" name="kota" id="edit_kota" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <input type="text" name="kota_kabupaten" id="edit_kota" required class="w-full border border-gray-300 rounded-lg px-3 py-2">
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Provinsi *</label>
@@ -376,10 +376,10 @@
 
         function openEditModal(item) {
             document.getElementById('editForm').action = `/admin/infrastructures/${item.id}`;
-            document.getElementById('edit_nama_objek').value = item.nama_objek;
+            document.getElementById('edit_nama_infrastruktur').value = item.nama_infrastruktur;
             document.getElementById('edit_kategori').value = item.kategori;
             document.getElementById('edit_jenis').value = item.jenis_infrastruktur || '';
-            document.getElementById('edit_kota').value = item.kota;
+            document.getElementById('edit_kota').value = item.kota_kabupaten;
             document.getElementById('edit_provinsi').value = item.provinsi;
             document.getElementById('edit_latitude').value = item.latitude;
             document.getElementById('edit_longitude').value = item.longitude;

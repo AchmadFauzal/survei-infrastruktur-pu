@@ -96,9 +96,10 @@
                                         <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-slate-200 text-slate-800">{{ $item->kategori }}</span>
                                         <span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-green-100 text-green-800">✓ Selesai</span>
                                     </div>
-                                    <p class="font-bold text-gray-900 text-sm">{{ $item->nama_objek }}</p>
+                                    <p class="font-bold text-gray-900 text-sm">{{ $item->nama_infrastruktur }}</p>
                                     <p class="text-gray-600 text-[11px]">{{ $item->jenis_infrastruktur ?? 'Jenis belum diisi' }}</p>
-                                    <p class="text-gray-400 text-[10px]">{{ $item->kota }}, {{ $item->provinsi }}</p>
+                                    <p class="text-gray-700 text-[11px]">Nama hasil survei: {{ $item->nama_hasil_survey ?? '-' }}</p>
+                                    <p class="text-gray-400 text-[10px]">{{ $item->kota_kabupaten }}, {{ $item->provinsi }}</p>
                                     @if($item->alasan_verifikasi)
                                         <p class="text-gray-600 italic mt-1 text-[11px] bg-gray-50 p-1.5 rounded border">"{{ $item->alasan_verifikasi }}"</p>
                                     @endif
@@ -399,8 +400,8 @@
 
                 ws.getCell(r, 1).value = idx + 1;
                 ws.getCell(r, 2).value = `${d.kategori} - ${d.jenis_infrastruktur || '-'}`;
-                ws.getCell(r, 3).value = d.nama_objek;
-                ws.getCell(r, 4).value = `${d.kota}, ${d.provinsi}`;
+                ws.getCell(r, 3).value = d.nama_infrastruktur;
+                ws.getCell(r, 4).value = `${d.kota_kabupaten}, ${d.provinsi}`;
                 ws.getCell(r, 5).value = lon;
                 ws.getCell(r, 6).value = lat;
                 ws.getCell(r, 7).value = 'Sudah Survei';

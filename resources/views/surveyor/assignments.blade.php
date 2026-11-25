@@ -38,9 +38,9 @@
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-1.5">
                                         <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-200 text-amber-950">{{ $task->kategori }}</span>
-                                        <span class="font-bold text-gray-900 truncate">{{ $task->nama_objek }}</span>
+                                        <span class="font-bold text-gray-900 truncate">{{ $task->nama_infrastruktur }}</span>
                                     </div>
-                                    <p class="text-gray-600 text-[11px] mt-0.5">{{ $task->kota }}, {{ $task->provinsi }} • <span class="font-mono text-[10px] text-gray-400">{{ $task->latitude }}, {{ $task->longitude }}</span></p>
+                                    <p class="text-gray-600 text-[11px] mt-0.5">{{ $task->kota_kabupaten }}, {{ $task->provinsi }} • <span class="font-mono text-[10px] text-gray-400">{{ $task->latitude }}, {{ $task->longitude }}</span></p>
                                 </div>
                                 <a href="{{ route('landing', ['focus_id' => $task->id, 'filter' => 'assigned']) }}"
                                    class="bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-1.5 rounded-lg font-bold shrink-0 shadow-sm transition">
@@ -106,9 +106,9 @@
                                         @if($isAssigned)
                                             <span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-100 text-amber-800 border border-amber-300">Tugas Saya</span>
                                         @endif
-                                        <span class="font-bold text-gray-900">{{ $pt->nama_objek }}</span>
+                                        <span class="font-bold text-gray-900">{{ $pt->nama_infrastruktur }}</span>
                                     </div>
-                                    <p class="text-[11px] text-gray-500 mt-0.5">{{ $pt->kota }}, {{ $pt->provinsi }}</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5">{{ $pt->kota_kabupaten }}, {{ $pt->provinsi }}</p>
                                 </div>
                             </label>
                         @empty
@@ -228,8 +228,8 @@
                         ${idx + 1}
                     </span>
                     <div class="min-w-0">
-                        <p class="font-bold text-gray-900 truncate">${pt.nama_objek}</p>
-                        <p class="text-[10px] text-gray-500 truncate">${pt.kategori} • ${pt.kota}, ${pt.provinsi}</p>
+                        <p class="font-bold text-gray-900 truncate">${pt.nama_infrastruktur}</p>
+                        <p class="text-[10px] text-gray-500 truncate">${pt.kategori} • ${pt.kota_kabupaten}, ${pt.provinsi}</p>
                     </div>
                 </div>
                 <button type="button" onclick="uncheckRoutePoint(${pt.id})"

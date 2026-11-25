@@ -18,9 +18,9 @@ class AssignmentController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_objek', 'ilike', "%{$search}%")
-                  ->orWhere('kota', 'ilike', "%{$search}%")
-                  ->orWhere('provinsi', 'ilike', "%{$search}%");
+                $q->where('nama_infrastruktur', 'like', "%{$search}%")
+                  ->orWhere('kota_kabupaten', 'like', "%{$search}%")
+                  ->orWhere('provinsi', 'like', "%{$search}%");
             });
         }
 
@@ -29,7 +29,7 @@ class AssignmentController extends Controller
         }
 
         if ($request->filled('status_survei')) {
-            $query->where('status_survei', $request->status_survei);
+            $query->where('status_survey', $request->status_survei === 'sudah');
         }
 
         $assignments = $query->latest('updated_at')->paginate(20)->withQueryString();
@@ -37,7 +37,7 @@ class AssignmentController extends Controller
         // Daftar titik yang belum ditugaskan untuk pilihan pada Modal Tambah Penugasan
         $unassignedInfrastructures = Infrastructure::whereNull('assigned_to')
             ->orderBy('provinsi')
-            ->orderBy('nama_objek')
+            ->orderBy('nama_infrastruktur')
             ->get();
 
         $surveyors = User::where('role', 'surveyor')->orderBy('name')->get();
@@ -45,8 +45,8 @@ class AssignmentController extends Controller
         // Statistik ringkas penugasan
         $stats = [
             'total_tugas'   => Infrastructure::whereNotNull('assigned_to')->count(),
-            'belum_selesai' => Infrastructure::whereNotNull('assigned_to')->where('status_survei', 'belum')->count(),
-            'sudah_selesai' => Infrastructure::whereNotNull('assigned_to')->where('status_survei', 'sudah')->count(),
+            'belum_selesai' => Infrastructure::whereNotNull('assigned_to')->where('status_survey', false)->count(),
+            'sudah_selesai' => Infrastructure::whereNotNull('assigned_to')->where('status_survey', true)->count(),
             'belum_dibagi'  => Infrastructure::whereNull('assigned_to')->count(),
         ];
 
@@ -84,20 +84,20 @@ class AssignmentController extends Controller
         $request->validate([
             'assigned_to'         => 'nullable|exists:users,id',
             'status_survei'       => 'required|in:belum,sudah',
-            'nama_objek'          => 'required|string|max:255',
-            'kota'                => 'required|string|max:255',
+            'nama_infrastruktur'          => 'required|string|max:255',
+            'kota_kabupaten'      => 'required|string|max:255',
             'provinsi'            => 'required|string|max:255',
         ]);
 
         $infrastructure->update([
             'assigned_to'   => $request->assigned_to ?: null,
-            'status_survei' => $request->status_survei,
-            'nama_objek'    => $request->nama_objek,
-            'kota'          => $request->kota,
+            'status_survey' => $request->status_survei === 'sudah',
+            'nama_infrastruktur'    => $request->nama_infrastruktur,
+            'kota_kabupaten' => $request->kota_kabupaten,
             'provinsi'      => $request->provinsi,
         ]);
 
-        return back()->with('success', "Penugasan untuk '{$infrastructure->nama_objek}' berhasil diperbarui.");
+        return back()->with('success', "Penugasan untuk '{$infrastructure->nama_infrastruktur}' berhasil diperbarui.");
     }
 
     /**
@@ -105,7 +105,7 @@ class AssignmentController extends Controller
      */
     public function destroy(Infrastructure $infrastructure)
     {
-        $nama = $infrastructure->nama_objek;
+        $nama = $infrastructure->nama_infrastruktur;
         $infrastructure->update(['assigned_to' => null]);
 
         return back()->with('success', "Penugasan untuk '{$nama}' berhasil dibatalkan.");

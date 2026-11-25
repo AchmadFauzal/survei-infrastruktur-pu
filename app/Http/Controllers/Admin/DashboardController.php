@@ -17,12 +17,12 @@ class DashboardController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('nama_objek', 'ilike', "%{$search}%")
-                  ->orWhere('jenis_infrastruktur', 'ilike', "%{$search}%")
-                  ->orWhere('nama_hasil_survei', 'ilike', "%{$search}%")
-                  ->orWhere('alasan_verifikasi', 'ilike', "%{$search}%")
-                  ->orWhere('kota', 'ilike', "%{$search}%")
-                  ->orWhere('provinsi', 'ilike', "%{$search}%");
+                $q->where('nama_infrastruktur', 'like', "%{$search}%")
+                  ->orWhere('jenis_infrastruktur', 'like', "%{$search}%")
+                  ->orWhere('nama_hasil_survey', 'like', "%{$search}%")
+                  ->orWhere('alasan_verifikasi', 'like', "%{$search}%")
+                  ->orWhere('kota_kabupaten', 'like', "%{$search}%")
+                  ->orWhere('provinsi', 'like', "%{$search}%");
             });
         }
 
@@ -33,15 +33,15 @@ class DashboardController extends Controller
 
         // Filter Status Survei
         if ($request->filled('status_survei')) {
-            $query->where('status_survei', $request->status_survei);
+            $query->where('status_survey', $request->status_survei === 'sudah');
         }
 
         // Filter Provinsi & Kota
         if ($request->filled('provinsi')) {
             $query->where('provinsi', $request->provinsi);
         }
-        if ($request->filled('kota')) {
-            $query->where('kota', $request->kota);
+        if ($request->filled('kota_kabupaten')) {
+            $query->where('kota_kabupaten', $request->kota_kabupaten);
         }
 
         // Filter Petugas Surveyor
@@ -49,7 +49,7 @@ class DashboardController extends Controller
             $query->where('surveyed_by', $request->surveyed_by);
         }
 
-        $infrastructures = $query->orderByRaw("CASE WHEN status_survei = 'sudah' THEN 0 ELSE 1 END")
+        $infrastructures = $query->orderBy('status_survey', 'desc')
                                  ->latest('surveyed_at')
                                  ->paginate(15)
                                  ->withQueryString();
@@ -57,30 +57,30 @@ class DashboardController extends Controller
         // Statistik Utama + Rincian per Kategori (BM, CK, SDA, PS)
         $stats = [
             'total'   => Infrastructure::count(),
-            'sudah'   => Infrastructure::where('status_survei', 'sudah')->count(),
-            'belum'   => Infrastructure::where('status_survei', 'belum')->count(),
+            'sudah'   => Infrastructure::where('status_survey', true)->count(),
+            'belum'   => Infrastructure::where('status_survey', false)->count(),
             'per_kategori' => [
                 'BM'  => [
                     'total' => Infrastructure::where('kategori', 'BM')->count(),
-                    'sudah' => Infrastructure::where('kategori', 'BM')->where('status_survei', 'sudah')->count(),
+                    'sudah' => Infrastructure::where('kategori', 'BM')->where('status_survey', true)->count(),
                 ],
                 'CK'  => [
                     'total' => Infrastructure::where('kategori', 'CK')->count(),
-                    'sudah' => Infrastructure::where('kategori', 'CK')->where('status_survei', 'sudah')->count(),
+                    'sudah' => Infrastructure::where('kategori', 'CK')->where('status_survey', true)->count(),
                 ],
                 'SDA' => [
                     'total' => Infrastructure::where('kategori', 'SDA')->count(),
-                    'sudah' => Infrastructure::where('kategori', 'SDA')->where('status_survei', 'sudah')->count(),
+                    'sudah' => Infrastructure::where('kategori', 'SDA')->where('status_survey', true)->count(),
                 ],
                 'PS'  => [
                     'total' => Infrastructure::where('kategori', 'PS')->count(),
-                    'sudah' => Infrastructure::where('kategori', 'PS')->where('status_survei', 'sudah')->count(),
+                    'sudah' => Infrastructure::where('kategori', 'PS')->where('status_survey', true)->count(),
                 ],
             ]
         ];
 
         $daftarProvinsi = Infrastructure::select('provinsi')->distinct()->orderBy('provinsi')->pluck('provinsi');
-        $daftarKota     = Infrastructure::select('kota')->distinct()->orderBy('kota')->pluck('kota');
+        $daftarKota     = Infrastructure::select('kota_kabupaten')->distinct()->orderBy('kota_kabupaten')->pluck('kota_kabupaten');
         $daftarSurveyor = User::orderBy('name')->get();
 
         return view('admin.dashboard', compact(
