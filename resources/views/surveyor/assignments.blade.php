@@ -12,6 +12,74 @@
 @endsection
 
 @section('content')
+    @php
+        $sisaTugas = $assignedTasks->count();
+        $siapLapor = $readyToReportTasks->count();
+        $totalPaketTugas = $sisaTugas + $siapLapor;
+        $bisaKirimLog = ($siapLapor > 0);
+    @endphp
+
+    <!-- BANNER STATUS PENYELESAIAN & TOMBOL KIRIM LAPORAN KE LOG ADMIN (BISA BERTAHAP) -->
+    @if($totalPaketTugas > 0)
+        <section class="mb-6 rounded-2xl p-5 shadow-sm border {{ $bisaKirimLog ? 'bg-emerald-50 border-emerald-300' : 'bg-white border-gray-200' }}">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="font-bold text-sm {{ $bisaKirimLog ? 'text-emerald-950' : 'text-gray-900' }}">
+                            @if($sisaTugas === 0 && $siapLapor > 0)
+                                🎉 Seluruh Penugasan Selesai ({{ $siapLapor }}/{{ $totalPaketTugas }} Titik)
+                            @elseif($bisaKirimLog)
+                                ✅ {{ $siapLapor }} Titik Selesai & Siap Dilaporkan (Sisa {{ $sisaTugas }} Titik)
+                            @else
+                                📋 Progres Penugasan (0/{{ $totalPaketTugas }} Selesai)
+                            @endif
+                        </h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold {{ $bisaKirimLog ? 'bg-emerald-600 text-white' : 'bg-amber-100 text-amber-800' }}">
+                            {{ $bisaKirimLog ? "{$siapLapor} Siap Kirim Log" : "Sisa {$sisaTugas} Lokasi" }}
+                        </span>
+                    </div>
+
+                    <p class="text-xs {{ $bisaKirimLog ? 'text-emerald-800' : 'text-gray-500' }}">
+                        @if($bisaKirimLog)
+                            Anda dapat langsung melaporkan <strong>{{ $siapLapor }} titik</strong> yang sudah selesai ini ke Log Admin sekarang, dan melanjutkan sisa tugas lainnya nanti.
+                        @else
+                            Lakukan survei pada minimal 1 titik terlebih dahulu untuk mengaktifkan tombol pelaporan ke Log Admin.
+                        @endif
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('surveyor.assignments.submit_batch') }}"
+                      onsubmit="return confirm('Kirim laporan penyelesaian untuk {{ $siapLapor }} infrastruktur ke Log Admin sekarang?')"
+                      class="shrink-0">
+                    @csrf
+                    <button type="submit"
+                            {{ !$bisaKirimLog ? 'disabled' : '' }}
+                            class="w-full md:w-auto px-5 py-3 rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-2 {{ $bisaKirimLog ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed' }}">
+                        <span>✓ Tandai Tugas Selesai ({{ $siapLapor }} Titik)</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Rincian Titik yang Sudah Selesai Disurvei dan Siap Dikirim ke Log -->
+            @if($siapLapor > 0)
+                <div class="mt-4 pt-3 border-t border-emerald-200">
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 mb-2">
+                        Daftar Titik yang Akan Masuk ke Laporan Sekarang:
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($readyToReportTasks as $doneTask)
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white border border-emerald-300 text-emerald-900">
+                                <span class="text-emerald-600 font-bold">✓</span>
+                                <span>{{ $doneTask->nama_infrastruktur }}</span>
+                                <span class="text-[10px] text-gray-400">({{ $doneTask->kategori }})</span>
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </section>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         <!-- KOLOM KIRI (7 Kolom): Daftar Penugasan & Pemilihan Titik -->
@@ -51,7 +119,11 @@
                     </div>
                 @else
                     <p class="text-xs text-amber-900 bg-white/80 p-4 rounded-xl border border-amber-200 text-center">
-                        Tidak ada penugasan khusus saat ini. Anda dapat memilih titik secara bebas dari tab <strong>Semua Belum Survei</strong> di bawah.
+                        @if($siapLapor > 0)
+                            Semua titik penugasan Anda sudah selesai disurvei! Silakan klik tombol <strong>Tandai Tugas Selesai</strong> di atas untuk melaporkannya ke Admin.
+                        @else
+                            Tidak ada penugasan khusus saat ini. Anda dapat memilih titik secara bebas dari tab <strong>Semua Belum Survei</strong> di bawah.
+                        @endif
                     </p>
                 @endif
             </section>

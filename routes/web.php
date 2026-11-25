@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\InfrastructureManagementController;
 use App\Http\Controllers\Admin\AssignmentController;
 use App\Http\Controllers\Admin\BigReportController;
+use App\Http\Controllers\Admin\SurveyLogController;
 use App\Http\Controllers\Surveyor\SurveyorDashboardController;
 use App\Models\WilayahBoundary;
 use Illuminate\Http\Request;
@@ -72,12 +73,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/big', [BigReportController::class, 'index'])->name('big.index');
     Route::patch('/big/{infrastructure}/toggle', [BigReportController::class, 'toggle'])->name('big.toggle');
     Route::post('/big/bulk-update', [BigReportController::class, 'bulkUpdate'])->name('big.bulk');
+
+    // Log Aktivitas Survei
+    Route::get('/logs', [SurveyLogController::class, 'index'])->name('logs.index');
 });
 
 // 4. Area Khusus Surveyor
 Route::middleware(['auth', 'role:surveyor'])->prefix('surveyor')->name('surveyor.')->group(function () {
     Route::get('/dashboard', [SurveyorDashboardController::class, 'index'])->name('dashboard');
     Route::get('/assignments', [SurveyorDashboardController::class, 'assignments'])->name('assignments');
+    Route::post('/assignments/submit-batch', [SurveyorDashboardController::class, 'submitBatchCompletion'])->name('assignments.submit_batch');
 });
 
 // 5. API GeoJSON Batas Wilayah

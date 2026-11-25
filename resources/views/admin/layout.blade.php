@@ -61,6 +61,12 @@
                     <span class="admin-sidebar-label truncate">Status Lapor BIG</span>
                 </a>
 
+                <a href="{{ route('admin.logs.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition {{ request()->routeIs('admin.logs.*') ? 'bg-indigo-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <span class="text-base shrink-0">🕒</span>
+                        <span class="admin-sidebar-label truncate">Log Aktivitas Survei</span>
+                </a>
+
                 <a href="{{ route('admin.users.index') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-semibold transition {{ request()->routeIs('admin.users.*') ? 'bg-blue-600 text-white shadow' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
                     <span class="text-base shrink-0">👥</span>

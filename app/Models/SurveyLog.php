@@ -6,5 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class SurveyLog extends Model
 {
-    //
+    protected $fillable = [
+        'user_id',
+        'total_infrastructures',
+        'catatan',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(SurveyLogItem::class);
+    }
 }
